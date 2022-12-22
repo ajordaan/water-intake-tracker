@@ -1,6 +1,6 @@
 import './StatusBar.css'
 function StatusBar(props) {
- 
+
   return (
     <div className='status'>
       <div className={`indicator-dot indicator-dot--${props.isConnected ? 'connected' : 'disconnected'} `}></div>
