@@ -1,9 +1,8 @@
 import './WaterBottle.css'
 function WaterBottle(props) {
-  const MIN_HEIGHT = 11
-  const MAX_HEIGHT = 300
+  const minPercentage = 4
 
-  const computedHeight = (props.waterLevel / 100) * (MAX_HEIGHT - MIN_HEIGHT) + MIN_HEIGHT
+  const height = props.waterLevel > minPercentage ? props.waterLevel : minPercentage
   return (
     <div className={`bottle ${props.bottleLifted ? 'bottle--lifted' : ''}`}>
       <div className="bottle_top">
@@ -17,7 +16,7 @@ function WaterBottle(props) {
       <div className="bottle_main">
         <div className="bottle_inner">
           <div className="water" style={{
-            height: computedHeight
+            height: `${height}%`
           }} ></div>
         </div>
         <div className="highlight"></div>
