@@ -13,6 +13,7 @@ class ScaleMonitor {
     this.scaleOffset = scaleOffset
     this.currentState = currentState ?? STATE.EMPTY_SCALE
     this.prevWeight = null
+    this.weight = null
     this.debug = debug
   }
 
@@ -24,39 +25,39 @@ class ScaleMonitor {
       this.log('scale offset: ' + this.scaleOffset)
     }
 
-    const weight = scaleData - this.scaleOffset
+     this.weight = scaleData - this.scaleOffset
 
     if (!this.scaleHasStabilised()) {
       this.log('scale not stable')
-      this.prevWeight = weight
+      this.prevWeight = this.weight
       return null
     }
 
-    this.log('Weight: ' + weight)
+    this.log('Weight: ' + this.weight)
 
-    if (this.approxEqual(weight, 0) && this.currentState != STATE.EMPTY_SCALE) {
+    if (this.approxEqual(this.weight, 0) && this.currentState != STATE.EMPTY_SCALE) {
       this.log("BOTTLE REMOVED FROM SCALE")
       this.currentState = STATE.EMPTY_SCALE
 
       return { event: 'BOTTLE LIFTED' }
     }
-    else if (this.approxEqual(weight, this.BOTTLE_WEIGHT.full) && this.currentState == STATE.EMPTY_SCALE) {
+    else if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.full) && this.currentState == STATE.EMPTY_SCALE) {
       this.log('FULL BOTTLE ON SCALE', { waterLevel: 100 })
       this.currentState = STATE.FULL_BOTTLE
 
       return { event: 'BOTTLE LOWERED', payload: { waterLevel: 100 } }
     }
-    else if (this.approxEqual(weight, this.BOTTLE_WEIGHT.empty) && this.currentState == STATE.EMPTY_SCALE) {
+    else if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.empty) && this.currentState == STATE.EMPTY_SCALE) {
       this.currentState = STATE.EMPTY_BOTTLE
       this.log('empty bottle on scale')
 
       return { event: 'BOTTLE LOWERED', payload: { waterLevel: 0 } }
     }
-    else if (weight > (this.BOTTLE_WEIGHT.empty + this.TOLERANCE_GRAMS) && this.currentState == STATE.EMPTY_SCALE) {
+    else if (this.weight > (this.BOTTLE_WEIGHT.empty + this.TOLERANCE_GRAMS) && this.currentState == STATE.EMPTY_SCALE) {
       this.currentState = STATE.PARTIALLY_FULL_BOTTLE
       this.log('bottle on scale')
 
-      const waterMl = weight - this.BOTTLE_WEIGHT.empty
+      const waterMl = this.weight - this.BOTTLE_WEIGHT.empty
       const level = waterMl / this.MAX_BOTTLE_CAPACITY * 100
       this.log('water level: ' + level)
 
@@ -70,7 +71,7 @@ class ScaleMonitor {
   }
 
   scaleHasStabilised() {
-    return this.approxEqual(this.prevWeight, weight)
+    return this.approxEqual(this.prevWeight, this.weight)
   }
 
   log(str) {
