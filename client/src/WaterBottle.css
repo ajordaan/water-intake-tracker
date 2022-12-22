@@ -1,26 +1,11 @@
 
 /* @import "compass/css3"; */
-
-* {
-  margin: 0;
-  padding: 0;
-}
+/* Water bottle credit: https://codepen.io/xmap/pen/nMVJQo */
 
 :before, :after {
   content: '';
   display: block;
   position: absolute;
-}
-
-html, body {
-  height: 100%;
-}
-
-body {
-  padding: 50px;
-  font: 14px/1 'Open Sans', sans-serif;
-  color: #555;
-  background: #2a2b33;
 }
 
 .bottle {
