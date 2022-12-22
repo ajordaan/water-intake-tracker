@@ -1,0 +1,21 @@
+.status {
+  position: fixed;
+  top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.indicator-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.indicator-dot.indicator-dot--connected {
+  background-color: green;
+}
+
+.indicator-dot.indicator-dot--disconnected {
+  background-color: red;
+}
