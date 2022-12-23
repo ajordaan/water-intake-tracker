@@ -41,3 +41,4 @@ There are some options to tweak the scale readings
 * Add tare / recalibration function that is either automated or initiated from client
 * Add water intake tracking and store results in a simple DB
 * Reminders for when water bottle is empty / off scale / water intake not met
+* Client sockets seems a bit wonky. Had to disable automatic reconnection for now
