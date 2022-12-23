@@ -106,25 +106,19 @@ describe('Scale Monitor', () => {
     const BOTTLE_WEIGHT = { empty: 430, full: 900 }
 
     const scale = new ScaleMonitor(BOTTLE_WEIGHT, null, 0, 0)
+    scale.stabiliseScale = false
 
     expect(scale.currentState).toBe('EMPTY_SCALE')
 
     scale.readScale(BOTTLE_WEIGHT.empty)
-    scale.readScale(BOTTLE_WEIGHT.empty)
-
     expect(scale.currentState).toBe('EMPTY_BOTTLE')
 
     scale.readScale(0)
-    scale.readScale(0)
-
     expect(scale.currentState).toBe('EMPTY_SCALE')
 
     scale.readScale(BOTTLE_WEIGHT.empty + 1)
-    scale.readScale(BOTTLE_WEIGHT.empty + 1)
-
     expect(scale.currentState).toBe('PARTIALLY_FULL_BOTTLE')
 
-    scale.readScale(0)
     scale.readScale(0)
 
     expect(scale.currentState).toBe('EMPTY_SCALE')
@@ -135,12 +129,26 @@ describe('Scale Monitor', () => {
     expect(scale.currentState).toBe('FULL_BOTTLE')
 
     scale.readScale(0)
-    scale.readScale(0)
-
     expect(scale.currentState).toBe('EMPTY_SCALE')
   })
 
   test('returning events', () => {
+    const BOTTLE_WEIGHT = { empty: 10, full: 20 }
+
+    const scale = new ScaleMonitor(BOTTLE_WEIGHT, null, 0, 0)
+    scale.stabiliseScale = false
+
+    scale.readScale(0)
+    expect(scale.readScale(BOTTLE_WEIGHT.empty)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 0 } })
+    expect(scale.readScale(0)).toStrictEqual({ event: 'BOTTLE LIFTED' })
+    expect(scale.readScale(BOTTLE_WEIGHT.empty + 5)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 50 } })
+    expect(scale.readScale(0)).toStrictEqual({ event: 'BOTTLE LIFTED' })
+    expect(scale.readScale(BOTTLE_WEIGHT.empty + 8)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 80 } })
+    expect(scale.readScale(0)).toStrictEqual({ event: 'BOTTLE LIFTED' })
+    expect(scale.readScale(BOTTLE_WEIGHT.full)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 100 } })
+  })
+
+  test('returning events - with stabilisation', () => {
     const BOTTLE_WEIGHT = { empty: 10, full: 20 }
 
     const scale = new ScaleMonitor(BOTTLE_WEIGHT, null, 0, 0)
@@ -149,25 +157,7 @@ describe('Scale Monitor', () => {
 
     expect(scale.readScale(BOTTLE_WEIGHT.empty)).toBeNull()
     expect(scale.readScale(BOTTLE_WEIGHT.empty)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 0 } })
-
-    scale.readScale(0)
+    expect(scale.readScale(0)).toBeNull()
     expect(scale.readScale(0)).toStrictEqual({ event: 'BOTTLE LIFTED' })
-
-    scale.readScale(BOTTLE_WEIGHT.empty + 5)
-    expect(scale.readScale(BOTTLE_WEIGHT.empty + 5)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 50 } })
-
-    scale.readScale(0)
-    scale.readScale(0)
-
-    scale.readScale(BOTTLE_WEIGHT.empty + 8)
-    expect(scale.readScale(BOTTLE_WEIGHT.empty + 8)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 80 } })
-
-    scale.readScale(0)
-    scale.readScale(0)
-
-    scale.readScale(BOTTLE_WEIGHT.full)
-    expect(scale.readScale(BOTTLE_WEIGHT.full)).toStrictEqual({ event: 'BOTTLE LOWERED', payload: { waterLevel: 100 } })
-
-
   })
 })

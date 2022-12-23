@@ -16,14 +16,16 @@ class ScaleMonitor {
    * @param {number} [maxCapacity] The bottle's maximum capacity in ml. (Default is full weight - empty weight)
    * @param {number} [tolerance = 0] The margin of error for the scale
    * @param {number} [scaleOffset] The value required to 'tare' your scale if it does not output '0' when empty. (Default is the first value the scale outputs)
+   * @param {boolean} [stabiliseScale = true] Require 2 equal readings before sending events. STRONGLY RECOMMENDED unless your scale is using a smoothed/average reading
    * @param {string} [currentState = EMPTY_SCALE] The current state of the scale
    * @param {boolean} [debug = false] Enable debug to print out some console logs 
    */
-  constructor(weights, maxCapacity, tolerance = 0, scaleOffset = null, currentState = null, debug = false) {
+  constructor(weights, maxCapacity, tolerance = 0, scaleOffset = null, stabiliseScale = true, currentState = null, debug = false) {
     this.BOTTLE_WEIGHT = weights
     this.MAX_BOTTLE_CAPACITY = maxCapacity ?? (this.BOTTLE_WEIGHT.full - this.BOTTLE_WEIGHT.empty)
     this.TOLERANCE_GRAMS = tolerance
     this.scaleOffset = scaleOffset
+    this.stabiliseScale = stabiliseScale
     this.currentState = currentState ?? STATE.EMPTY_SCALE
     this.prevWeight = null
     this.weight = null
@@ -40,7 +42,7 @@ class ScaleMonitor {
 
      this.weight = scaleData - this.scaleOffset
 
-    if (!this.scaleHasStabilised()) {
+    if (this.stabiliseScale && !this.scaleHasStabilised()) {
       this.log('scale not stable')
       this.prevWeight = this.weight
       return null
