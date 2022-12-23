@@ -1,14 +1,27 @@
 const STATE = {
-  EMPTY_SCALE: 1,
-  EMPTY_BOTTLE: 2,
-  FULL_BOTTLE: 3,
-  PARTIALLY_FULL_BOTTLE: 4
+  EMPTY_SCALE: 'EMPTY_SCALE',
+  EMPTY_BOTTLE: 'EMPTY_BOTTLE',
+  PARTIALLY_FULL_BOTTLE: 'PARTIALLY_FULL_BOTTLE',
+  FULL_BOTTLE: 'FULL_BOTTLE',
 }
-
+/**
+ * Class representing a Digital Scale Monitor
+ */
 class ScaleMonitor {
+  /**
+   * 
+   * @param {Object} weights The empty and full weight of the bottle
+   * @param {number} weights.empty The empty weight in ml
+   * @param {number} weights.full The full weight in ml
+   * @param {number} [maxCapacity] The bottle's maximum capacity in ml. (Default is full weight - empty weight)
+   * @param {number} [tolerance = 0] The margin of error for the scale
+   * @param {number} [scaleOffset] The value required to 'tare' your scale if it does not output '0' when empty. (Default is the first value the scale outputs)
+   * @param {string} [currentState = EMPTY_SCALE] The current state of the scale
+   * @param {boolean} [debug = false] Enable debug to print out some console logs 
+   */
   constructor(weights, maxCapacity, tolerance = 0, scaleOffset = null, currentState = null, debug = false) {
     this.BOTTLE_WEIGHT = weights
-    this.MAX_BOTTLE_CAPACITY = maxCapacity
+    this.MAX_BOTTLE_CAPACITY = maxCapacity ?? (this.BOTTLE_WEIGHT.full - this.BOTTLE_WEIGHT.empty)
     this.TOLERANCE_GRAMS = tolerance
     this.scaleOffset = scaleOffset
     this.currentState = currentState ?? STATE.EMPTY_SCALE
@@ -18,7 +31,7 @@ class ScaleMonitor {
   }
 
   readScale(scaleData) {
-    if (!scaleData) return null;
+    if (scaleData == null ) return null;
 
     if (this.scaleOffset == null) {
       this.scaleOffset = scaleData
@@ -67,8 +80,9 @@ class ScaleMonitor {
   }
 
   approxEqual(v1, v2) {
-    return Math.abs(v1 - v2) < this.TOLERANCE_GRAMS
+    return Math.abs(v1 - v2) <= this.TOLERANCE_GRAMS
   }
+  
 
   scaleHasStabilised() {
     return this.approxEqual(this.prevWeight, this.weight)
