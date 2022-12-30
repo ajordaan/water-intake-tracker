@@ -33,14 +33,14 @@ class ScaleMonitor {
   }
 
   readScale(scaleData) {
-    if (scaleData == null ) return null;
+    if (scaleData == null) return null;
 
     if (this.scaleOffset == null) {
       this.scaleOffset = scaleData
       this.log('scale offset: ' + this.scaleOffset)
     }
 
-     this.weight = scaleData - this.scaleOffset
+    this.weight = scaleData - this.scaleOffset
 
     if (this.stabiliseScale && !this.scaleHasStabilised()) {
       this.log('scale not stable')
@@ -49,49 +49,63 @@ class ScaleMonitor {
     }
 
     this.log('Weight: ' + this.weight)
+    this.log('Current state: ' + this.currentState)
+    switch (this.currentState) {
+      case STATE.EMPTY_SCALE:
 
-    if (this.approxEqual(this.weight, 0) && this.currentState != STATE.EMPTY_SCALE) {
-      this.log("BOTTLE REMOVED FROM SCALE")
-      this.currentState = STATE.EMPTY_SCALE
+        if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.full)) {
+          this.log('FULL BOTTLE ON SCALE', { waterLevel: 100 })
+          this.currentState = STATE.FULL_BOTTLE
 
-      return { event: 'BOTTLE LIFTED' }
+          return { event: 'BOTTLE LOWERED', payload: { waterLevel: 100 } }
+        }
+        else if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.empty)) {
+          this.currentState = STATE.EMPTY_BOTTLE
+          this.log('empty bottle on scale')
+
+          return { event: 'BOTTLE LOWERED', payload: { waterLevel: 0 } }
+        }
+        else if (this.weight > (this.BOTTLE_WEIGHT.empty + this.TOLERANCE_GRAMS)) {
+          this.currentState = STATE.PARTIALLY_FULL_BOTTLE
+          this.log('bottle on scale')
+
+          const waterLevel = this.calculateWaterLevel()
+          this.log('water level: ' + waterLevel)
+
+          return { event: 'BOTTLE LOWERED', payload: { waterLevel: waterLevel } }
+        }
+        break
+      case STATE.EMPTY_BOTTLE:
+      case STATE.PARTIALLY_FULL_BOTTLE:
+      case STATE.FULL_BOTTLE:
+        if (this.approxEqual(this.weight, 0)) {
+          this.log("BOTTLE REMOVED FROM SCALE")
+          this.currentState = STATE.EMPTY_SCALE
+
+          return { event: 'BOTTLE LIFTED' }
+        }
     }
-    else if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.full) && this.currentState == STATE.EMPTY_SCALE) {
-      this.log('FULL BOTTLE ON SCALE', { waterLevel: 100 })
-      this.currentState = STATE.FULL_BOTTLE
 
-      return { event: 'BOTTLE LOWERED', payload: { waterLevel: 100 } }
-    }
-    else if (this.approxEqual(this.weight, this.BOTTLE_WEIGHT.empty) && this.currentState == STATE.EMPTY_SCALE) {
-      this.currentState = STATE.EMPTY_BOTTLE
-      this.log('empty bottle on scale')
-
-      return { event: 'BOTTLE LOWERED', payload: { waterLevel: 0 } }
-    }
-    else if (this.weight > (this.BOTTLE_WEIGHT.empty + this.TOLERANCE_GRAMS) && this.currentState == STATE.EMPTY_SCALE) {
-      this.currentState = STATE.PARTIALLY_FULL_BOTTLE
-      this.log('bottle on scale')
-
-      const waterMl = this.weight - this.BOTTLE_WEIGHT.empty
-      const level = waterMl / this.MAX_BOTTLE_CAPACITY * 100
-      this.log('water level: ' + level)
-
-      return { event: 'BOTTLE LOWERED', payload: { waterLevel: level } }
-    }
     return null
+  }
+
+  calculateWaterLevel() {
+    const waterMl = this.weight - this.BOTTLE_WEIGHT.empty
+    const levelPercent = waterMl / this.MAX_BOTTLE_CAPACITY * 100
+
+    return levelPercent
   }
 
   approxEqual(v1, v2) {
     return Math.abs(v1 - v2) <= this.TOLERANCE_GRAMS
   }
-  
 
   scaleHasStabilised() {
     return this.approxEqual(this.prevWeight, this.weight)
   }
 
   log(str) {
-    if(this.debug) {
+    if (this.debug) {
       console.log(str)
     }
   }
